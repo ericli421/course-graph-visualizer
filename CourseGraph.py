@@ -1,0 +1,538 @@
+try:
+    import matplotlib as mp
+    import networkx as nx
+    import json
+    import os
+except:
+    print("Please install matplotlib and networkx libraries to proceed")
+    print("To install with pip, use 'pip install matplotlib networkx'")
+    exit()
+
+
+class CourseGraph:
+
+    '''Class that represents a graph of courses in a particular program'''
+
+    def __init__(self):
+        '''Filler constructor'''
+        self.name = ""
+        self.size = 0
+        self.course_list = 0
+
+    def __init__(self, name):
+        '''
+        Constructor that creates a new blank course graph
+
+        Arguments:
+            name (string): name of the program
+        Returns:
+            None (creates a new CourseGraph object)
+        >>> comp_sci = CourseGraph('Computer Science')
+        >>> print(comp_sci)
+        Course Graph for Computer Science:
+        Number of courses: 0
+        Courses: None
+        '''
+        self.name = name
+        self.size = 0
+        self.course_list = 0
+
+
+    def __str__(self):
+        '''
+        Returns a string representation of the course graph
+        Arguments:
+            None
+        Returns:
+            string: string representation of the course graph
+        '''
+        line1 = "Course Graph for " + self.name + ":\n"
+        line2 = "Number of courses: " + str(self.size) + "\n"
+        line3 = "Courses: "
+        if self.size == 0: 
+            line3 += "None"
+        else:
+            for course in self.course_list:
+                line3 += str(course.get_course_code()) + " "
+        return line1 + line2 + line3
+    
+    def add_course(self, course):
+        '''
+        Adds a course to the course graph
+        Arguments:
+            course (CourseNode): course to be added
+        Returns:
+            None
+        >>> comp_sci = CourseGraph('Computer Science')
+        >>> comp202 = CourseNode('COMP 202', 'Foundations of Programming', [], [], 74)
+        >>> comp_sci.add_course(comp202)
+        >>> print(comp_sci)
+        Course Graph for Computer Science:
+        Number of courses: 1
+        Courses: COMP 202 
+        '''
+        if self.size == 0:
+            self.course_list = [course]
+            self.size += 1
+        else:
+            self.course_list.append(course)
+            self.size += 1
+
+    def remove_course(self, course):
+        '''
+        Removes a course from the course graph
+        Arguments:
+            course (CourseNode): course to be removed
+        Returns:
+            None
+        >>> comp_sci = CourseGraph('Computer Science')
+        >>> comp202 = CourseNode('COMP 202', 'Foundations of Programming', [], [], 74)
+        >>> comp_sci.add_course(comp202)
+        >>> print(comp_sci)
+        Course Graph for Computer Science:
+        Number of courses: 1
+        Courses: COMP 202 
+        >>> comp_sci.remove_course(comp202)
+        >>> print(comp_sci)
+        Course Graph for Computer Science:
+        Number of courses: 0
+        Courses: None
+        '''
+        if self.size == 0 or course not in self.course_list:
+            print("Error: Course does not exist")
+            return
+        else:
+            self.course_list.remove(course)
+            self.size -= 1
+
+    # The following methods are fully AI generated
+    def get_all_courses(self):
+        """
+        Get all courses in the graph.
+        
+        Returns:
+            list: A list of all CourseNode objects in the graph
+        """
+        return list(self.courses.values())
+    
+    def get_courses_by_semester(self, semester):
+        """
+        Get all courses in a specific semester.
+        
+        Arguments:
+            semester (int): The semester to get courses for
+            
+        Returns:
+            list: A list of CourseNode objects in the specified semester
+        """
+        return [course for course in self.courses.values() if course.semester == semester]
+    
+    def get_courses_without_semester(self):
+        """
+        Get all courses that haven't been assigned a semester yet.
+        
+        Returns:
+            list: A list of CourseNode objects with semester = -1
+        """
+        return [course for course in self.courses.values() if course.semester == -1]
+    
+    def get_prerequisites_for(self, course_code):
+        """
+        Get all prerequisites for a specific course.
+        
+        Arguments:
+            course_code (string): The code of the course to get prerequisites for
+            
+        Returns:
+            list: A list of CourseNode objects that are prerequisites for the specified course
+        """
+        course = self.get_course(course_code)
+        if course:
+            return course.prerequisites
+        return []
+    
+    def get_courses_requiring(self, course_code):
+        """
+        Get all courses that require a specific course as a prerequisite.
+        
+        Arguments:
+            course_code (string): The code of the prerequisite course
+            
+        Returns:
+            list: A list of CourseNode objects that have the specified course as a prerequisite
+        """
+        requiring_courses = []
+        for course in self.courses.values():
+            if any(prereq.course_code == course_code for prereq in course.prerequisites):
+                requiring_courses.append(course)
+        return requiring_courses
+    
+    def check_prerequisites_satisfied(self, course_code):
+        """
+        Check if all prerequisites for a course have been assigned a semester
+        that comes before the course's semester.
+        
+        Arguments:
+            course_code (string): The code of the course to check
+            
+        Returns:
+            bool: True if all prerequisites are satisfied, False otherwise
+        """
+        course = self.get_course(course_code)
+        if not course or course.semester == -1:
+            return False
+            
+        for prereq in course.prerequisites:
+            if prereq.semester == -1 or prereq.semester >= course.semester:
+                return False
+        return True
+    
+    def get_all_semesters(self):
+        """
+        Get a list of all semesters that have courses assigned to them.
+        
+        Returns:
+            list: A sorted list of unique semester values (excluding -1)
+        """
+        semesters = set()
+        for course in self.courses.values():
+            if course.semester != -1:
+                semesters.add(course.semester)
+        return sorted(list(semesters))
+    
+    def export_to_json(self, filename):
+        """
+        Export the course graph to a JSON file.
+        
+        Arguments:
+            filename (string): The name of the file to export to
+        """
+        import json
+        
+        # Convert the graph to a serializable format
+        data = {}
+        for course_code, course in self.courses.items():
+            data[course_code] = {
+                'name': course.course_name,
+                'semester': course.semester,
+                'prerequisites': [prereq.course_code for prereq in course.prerequisites]
+            }
+        
+        # Write to file
+        with open(filename, 'w') as f:
+            json.dump(data, f, indent=4)
+        
+        print(f"Course data exported to {filename}")
+    
+    def import_from_json(self, filename):
+        """
+        Import a course graph from a JSON file.
+        
+        Arguments:
+            filename (string): The name of the file to import from
+            
+        Returns:
+            bool: True if import was successful, False otherwise
+        """
+        
+        
+        if not os.path.exists(filename):
+            print(f"Error: File {filename} does not exist")
+            return False
+        
+        try:
+            with open(filename, 'r') as f:
+                data = json.load(f)
+            
+            # First pass: Create all course nodes (without prerequisites)
+            for course_code, course_data in data.items():
+                self.add_course(CourseGraph.CourseNode(
+                    course_code,
+                    course_data['name'],
+                    [],
+                    [],
+                    course_data['semester']
+                ))
+            
+            # Second pass: Add prerequisites
+            for course_code, course_data in data.items():
+                course = self.get_course(course_code)
+                for prereq_code in course_data['prerequisites']:
+                    prereq = self.get_course(prereq_code)
+                    if prereq:
+                        course.add_prerequisite(prereq)
+            
+            print(f"Successfully imported course data from {filename}")
+            return True
+        
+        except Exception as e:
+            print(f"Error importing course data: {str(e)}")
+            return False
+    
+    def validate_graph(self):
+        """
+        Validate the graph to ensure there are no cycles or other issues.
+        
+        Returns:
+            tuple: (is_valid, list of issues)
+        """
+        issues = []
+        
+        # Check for prerequisite cycles using DFS
+        def has_cycle(node, visited, rec_stack):
+            visited.add(node.course_code)
+            rec_stack.add(node.course_code)
+            
+            for prereq in node.prerequisites:
+                if prereq.course_code not in visited:
+                    if has_cycle(prereq, visited, rec_stack):
+                        return True
+                elif prereq.course_code in rec_stack:
+                    return True
+                    
+            rec_stack.remove(node.course_code)
+            return False
+        
+        # Check each course for cycles
+        for course in self.courses.values():
+            visited = set()
+            rec_stack = set()
+            if has_cycle(course, visited, rec_stack):
+                issues.append(f"Cycle detected involving {course.course_code}")
+        
+        # Check for prerequisite courses that come after the courses that require them
+        for course in self.courses.values():
+            if course.semester != -1:
+                for prereq in course.prerequisites:
+                    if prereq.semester == -1:
+                        issues.append(f"{course.course_code} requires {prereq.course_code}, which has no semester assigned")
+                    elif prereq.semester >= course.semester:
+                        issues.append(f"{course.course_code} (semester {course.semester}) requires {prereq.course_code} (semester {prereq.semester}), which comes after or in the same semester")
+        
+        return (len(issues) == 0, issues)
+    
+    def get_semester_name(self, semester):
+        """
+        Convert a semester index to a human-readable name.
+        
+        Arguments:
+            semester (int): The semester index
+            
+        Returns:
+            string: The human-readable semester name (e.g., "Fall 2024")
+        """
+        if semester == -1:
+            return "Unassigned"
+            
+        season = ["Fall", "Winter", "Summer"][semester % 3]
+        year = (semester + 2) // 3 + 2024
+        return f"{season} {year}"
+    
+    def visualize(self):
+        '''
+        Visualizes the course graph
+        Arguments:
+            None
+        Returns:
+            None
+        >>> comp_sci = CourseGraph('Computer Science')
+        >>> comp202 = CourseNode('COMP 202', 'Foundations of Programming', [], [], 74)
+        >>> comp250 = CourseNode('COMP 250', 'Introduction to Computer Science', [comp202], [], 75)
+        >>> comp_sci.add_course(comp202)
+        >>> comp_sci.add_course(comp250)
+        >>> comp_sci.visualize()
+        '''
+        G = nx.DiGraph()
+        for course in self.course_list:
+            G.add_node(course.get_course_code())
+            for prereq in course.get_prerequisites():
+                G.add_edge(prereq.get_course_code(), course.get_course_code())
+            for coreq in course.get_prerequisites():
+                G.add_edge(coreq.get_course_code(), course.get_course_code())
+        
+        pos = nx.spring_layout(G)
+        nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold')
+        nx.draw_networkx_edge_labels(G, pos, edge_labels={(u, v): '' for u, v in G.edges()})
+        mp.show()
+
+    #End of AI generated methods
+    
+    class CourseNode:
+
+        def __init__(self,
+                    course_code,
+                    course_name,
+                    prerequisites,
+                    corequisites,
+                    semester
+                    ):
+            '''
+            Constructor that creates a new node that represents a course
+
+            Arguments:
+                course_code (string)
+                course_name (string)
+                prerequisites (list of nodes)
+                corequisites (list of nodes)
+                semester (int): represents the semester where 0 = W2000, 1 = S2000, 2 = F2000, 3 = W2001 etc.
+                                If this value is -1, it means it hasn't been assigned a semester yet
+            Returns:
+                None (creates a new CourseNode object)
+            >>> comp202 = CourseNode('COMP 202', 'Foundations of Programming', [], [], 74)
+            >>> print(comp202)
+            Foundations of Programming (COMP 202):
+                Prerequisites: None
+                Corequisites: None
+                This course has been taken (or expected to be taken) during Fall 2024
+            >>> comp250 = CourseNode('COMP 250', 'Introduction to Computer Science', [comp202], [], 75)
+            >>> print(comp250)
+            Introduction to Computer Science (COMP 250):
+                Prerequisites: COMP 202
+                Corequisites: None
+                This course has been taken (or expected to be taken) during Winter 2025
+            '''
+            self.course_code = course_code
+            self.course_name = course_name
+            self.prerequisites = prerequisites
+            self.corequisites = corequisites
+            self.semester = semester
+
+        def __str__(self):
+            line1 = self.course_name + " (" + self.course_code + "):\n" 
+
+            if len(self.prerequisites) == 0:
+                line2 = "   Prerequisites: None"
+            else:
+                line2= "    Prerequisites: "
+                for node in self.prerequisites:
+                    line2 = line2 + node.course_code + " "
+                line2 = line2 + '\n'
+
+            if len(self.corequisites == 0):
+                line3 = "Corequisites: None"
+            else:
+                line3 = "Corequisites: "
+                for node in self.corequisites:
+                    line3 = line3 + node.course_code + " "
+                line3 = line3 + '\n'
+            
+            if self.semester == -1:
+                line4 = "   This course has not been assigned a semester yet."
+            else:
+                line4 = "   This course has been taken (or expected to be taken) during " 
+                if (self.semester % 3 == 0):
+                    line4 = line4 + "Winter "
+                elif (self.semester % 3 == 1):
+                    line4 = line4 + "Summer "
+                else:
+                    line4 = line4 + "Fall "
+                
+                year = (self.semester) // 3 + 2024 
+                line4 = line4 + str(year)
+            
+            return line1 + line2 + line3 + line4
+        
+        def get_course_code(self):
+            return self.course_code
+        
+        def get_course_name(self): 
+            return self.course_name
+        
+        def get_prerequisites(self):
+            return self.prerequisites
+        
+        def get_corequisites(self):
+            return self.corequisites
+        
+        def get_semester(self):
+            return self.semester
+        
+        def add_prerequisite(self, course):
+            '''Appends prereq node to prerequisites list'''
+            if course not in self.prerequisites:
+                self.prerequisites.append(course)
+
+        def remove_prerequisite(self,course):
+            if course in  self.prerequisites:
+                self.prerequisites.remove(course)
+            else:
+                print("Course is not a prerequisite")
+        
+        def add_corequisite(self, course):
+            '''Appends prereq node to prerequisites list'''
+            if course not in self.corequisites:
+                self.corequisites.append(course)
+
+        def remove_corequisite(self,course):
+            if (course in self.corequisites):
+                self.prerequisites.remove(course)
+            else:
+                print("Course is not a corequisite")
+
+        def set_semester(self, season, year):
+            '''
+            Sets semester value for object
+            Arguments:
+                season (string): either "fall", "winter" or "summer"
+                year (int):
+            Returns:
+                None
+            '''
+            lower_season = season.lower
+            semester_value = 0
+
+            if (lower_season == 'f' or lower_season == 'fall'):
+                semester_value += 0
+            elif (lower_season == 'w' or lower_season == 'winter'):
+                semester_value += 1
+            elif (lower_season == 's' or lower_season == 'summer'):
+                semester_value += 2
+            else:
+                print("Error, please input a valid season")
+                return
+            
+            if (int(year) < 2000):
+                print("Error: Years before 2000 are not supported")
+                return
+            
+            semester_value += (year - 2000) * 3
+
+            for course in self.prerequisites:
+                if semester_value >= course.semester:
+                    print("WARNING: The prerequisiste " + course.course_code + " will not have been completed by this semester")
+                
+            for course in self.corequisites:
+                if semester_value > course.semester:
+                    print("WARNING: The corequisite " + course.course_code + " will not have been completed by this semester")
+
+            self.semester = semester_value
+
+        def remove_semester(self):
+            '''
+            Sets semester value for object to -1 (removes semester)
+            Arguments:
+                None
+            Returns:
+                None
+            '''
+            self.semester = -1
+        
+        def modify_code(self, new_code):
+            '''
+            Modifies course code
+            Arguments:
+                new_code (string): new course code
+            Returns:
+                None
+            '''
+            self.course_code = new_code
+        
+        def modify_name(self, new_name):
+            '''
+            Modifies course name
+            Arguments:
+                new_name (string): new course name
+            Returns:
+                None
+            '''
+            self.course_name = new_name
