@@ -1,5 +1,6 @@
 try:
     import matplotlib as mp
+    import matplotlib.pyplot as plt
     import networkx as nx
     import json
     import os
@@ -17,7 +18,7 @@ class CourseGraph:
         '''Filler constructor'''
         self.name = ""
         self.size = 0
-        self.course_list = 0
+        self.course_list = []
 
     def __init__(self, name):
         '''
@@ -35,7 +36,7 @@ class CourseGraph:
         '''
         self.name = name
         self.size = 0
-        self.course_list = 0
+        self.course_list = []
 
 
     def __str__(self):
@@ -224,8 +225,7 @@ class CourseGraph:
         Arguments:
             filename (string): The name of the file to export to
         """
-        import json
-        
+
         # Convert the graph to a serializable format
         data = {}
         for item in self.course_list:
@@ -233,7 +233,8 @@ class CourseGraph:
             data[item.course_code] = {
                 'name': item.course_name,
                 'semester': item.semester,
-                'prerequisites': [prereq.course_code for prereq in item.prerequisites]
+                'prerequisites': [prereq.course_code for prereq in item.prerequisites],
+                'corequisites': [coreq.course_code for coreq in item.corequisites]
             }
         
         # Write to file
@@ -262,7 +263,7 @@ class CourseGraph:
             with open(filename, 'r') as f:
                 data = json.load(f)
             
-            # First pass: Create all course nodes (without prerequisites)
+            # First pass: Create all course nodes (without prerequisites/corequisites)
             for course_code, course_data in data.items():
                 self.add_course(CourseGraph.CourseNode(
                     course_code,
@@ -272,13 +273,17 @@ class CourseGraph:
                     course_data['semester']
                 ))
             
-            # Second pass: Add prerequisites
+            # Second pass: Add prerequisites/corequisites
             for course_code, course_data in data.items():
                 course = self.get_course(course_code)
                 for prereq_code in course_data['prerequisites']:
                     prereq = self.get_course(prereq_code)
                     if prereq:
                         course.add_prerequisite(prereq)
+                for coreq_code in course_data['corequisites']:
+                    coreq = self.get_course(coreq_code)
+                    if coreq:
+                        course.add_corequisite(coreq)
             
             print(f"Successfully imported course data from {filename}")
             return True
@@ -360,18 +365,49 @@ class CourseGraph:
         >>> comp_sci.add_course(comp250)
         >>> comp_sci.visualize()
         '''
+        
+        
+        # Create a directed graph
         G = nx.DiGraph()
+        
+        # Add nodes and edges
         for course in self.course_list:
             G.add_node(course.get_course_code())
             for prereq in course.get_prerequisites():
                 G.add_edge(prereq.get_course_code(), course.get_course_code())
-            for coreq in course.get_prerequisites():
-                G.add_edge(coreq.get_course_code(), course.get_course_code())
+            # Fix: This was using prerequisites instead of corequisites
+            for coreq in course.get_corequisites():
+                G.add_edge(coreq.get_course_code(), course.get_course_code(), style='dashed')
         
+        # Create the layout for the graph
         pos = nx.spring_layout(G)
-        nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold')
-        nx.draw_networkx_edge_labels(G, pos, edge_labels={(u, v): '' for u, v in G.edges()})
-        mp.show()
+        
+        plt.figure(figsize=(12, 8))
+        plt.title(f"Course Graph for {self.name}", fontsize=16)
+        
+        # Draw the graph
+        nx.draw(G, pos, 
+                with_labels=True, 
+                node_size=2000, 
+                node_color='lightblue', 
+                font_size=10, 
+                font_weight='bold',
+                arrows=True)
+                
+        # Add edge labels
+        edge_labels = {}
+        for u, v, data in G.edges(data=True):
+            if 'style' in data and data['style'] == 'dashed':
+                edge_labels[(u, v)] = 'coreq'
+            else:
+                edge_labels[(u, v)] = 'prereq'
+                
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+        
+        # Display the graph
+        plt.tight_layout()
+        plt.show()
+        
 
     #End of AI generated methods
     
@@ -496,17 +532,17 @@ class CourseGraph:
             Returns:
                 None
             '''
-            lower_season = season.lower
+            lower_season = season.lower()
             semester_value = 0
 
-            if (lower_season == 'f' or lower_season == 'fall'):
+            if (lower_season == 'w' or lower_season == 'winter'):
                 semester_value += 0
-            elif (lower_season == 'w' or lower_season == 'winter'):
-                semester_value += 1
             elif (lower_season == 's' or lower_season == 'summer'):
+                semester_value += 1
+            elif (lower_season == 'f' or lower_season == 'fall'):
                 semester_value += 2
             else:
-                print("Error, please input a valid season")
+                print(f"Error, {lower_season} is not a valid season")
                 return
             
             if (int(year) < 2000):
@@ -555,6 +591,27 @@ class CourseGraph:
             '''
             self.course_name = new_name
 
+        def modify_prereqs(self,new_prereqs):
+            '''
+            Modifies prerequisites
+            Arguments:
+                new_prereqs (list of CourseNodes): new prereqs
+            Returns:
+                None
+            '''
+            self.prerequisites = new_prereqs
+        
+        def modify_coreqs(self,new_coreqs):
+            '''
+            Modifies corequisites
+            Arguments:
+                new_coreqs (list of CourseNodes): new coreqs
+            Returns:
+                None
+            '''
+            self.corequisites = new_coreqs
+
+
 
 if __name__ == '__main__':
     graph = CourseGraph("test")
@@ -562,8 +619,18 @@ if __name__ == '__main__':
     graph.add_course(c202)
     c250 = CourseGraph.CourseNode('COMP 250', 'Introduction to Computer Science', [c202], [], 75)
     graph.add_course(c250)
-    print(c202)
-    print(c250)
+    c206 = CourseGraph.CourseNode('COMP 206', 'Introduction to Software Systems', [c202], [], 75)
+    graph.add_course(c206)
+    c273 = CourseGraph.CourseNode('COMP 273', 'Introduction to Computer Systems', [], [c206], 75)
+    graph.add_course(c273)
+    m240 =CourseGraph.CourseNode('MATH 240', 'Discrete Structures', [], [], 74)
+    graph.add_course(m240)
+    c251 = CourseGraph.CourseNode('COMP 251', 'Algorithms and Data Structures', [c250,m240],[],77)
+    graph.add_course(c251)
+
+    for course in graph.course_list:
+        print(course)
+
     graph.export_to_json('test.json')
     graph2 = CourseGraph("test32")
     graph2.import_from_json('test.json')
