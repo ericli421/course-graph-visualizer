@@ -154,11 +154,6 @@ class CourseGraphApp:
                 self.update_course_display()
             else:
                 self.status_var.set(f"Failed to import from {filePath}")
-
-            #Save filepath to automatically reopen json file next session
-            file = open('savedata','w')
-            file.write(filePath)
-            file.close()
     
         
         
@@ -181,11 +176,6 @@ class CourseGraphApp:
             self.current_graph.export_to_json(filepath)
             self.status_var.set(f"Saved to {filepath}")
 
-            #Save filepath to automatically reopen json file next session
-            file = open('savedata','w')
-            file.write(filepath)
-            file.close()
-
     def add_course(self):
         #Dialog window
         add_window = tk.Toplevel(self.root)
@@ -196,7 +186,7 @@ class CourseGraphApp:
 
         ttk.Label(add_window,
                   text="Add New Course",
-                  font=(FONT, 
+                  font=("Arial", 
                          floor(14 * ZOOM_MULTIPLIER),
                          "bold")).pack(pady=floor(10 * ZOOM_MULTIPLIER))
         
@@ -351,7 +341,7 @@ class CourseGraphApp:
 
         ttk.Label(edit_window,
                   text="Edit Course",
-                  font=(FONT, 
+                  font=("Arial", 
                          floor(14 * ZOOM_MULTIPLIER),
                          "bold")).pack(pady=floor(10 * ZOOM_MULTIPLIER))
         
@@ -570,14 +560,6 @@ class CourseGraphApp:
 def main():
     root = tk.Tk()
     app = CourseGraphApp(root)
-    try:
-        file = open('savedata','r')
-        json_file = file.readline()
-        app.current_graph.import_from_json(json_file)
-        app.update_course_display()
-        file.close()
-    except:
-        pass
     root.mainloop()
 
 if __name__ == "__main__":

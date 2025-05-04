@@ -1,1 +1,9 @@
 /__pycache__/*
+/build/*
+/dist/*
+/*.spec
+test.json
+/hooks/*
+/build_env/*
+/dist/*
+savedata

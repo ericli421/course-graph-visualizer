@@ -5,8 +5,9 @@ try:
     import json
     import os
 except:
-    raise ImportError("Please import MatPlotLib and NetworkX packages using the command 'pip install networkx matplotlib'")
-    
+    print("Please install matplotlib and networkx libraries to proceed")
+    print("To install with pip, use 'pip install matplotlib networkx'")
+    exit()
 
 
 class CourseGraph:
@@ -364,6 +365,7 @@ class CourseGraph:
         Returns:
             None
         '''
+        import matplotlib.pyplot as plt
         
         # Create a directed graph
         G = nx.DiGraph()
@@ -407,20 +409,15 @@ class CourseGraph:
         # Calculate the total number of nodes to set appropriate figure size
         node_count = len(G.nodes())
         width = max(14, node_count * 0.8)
-        height = max(10, node_count * 0.6)  # Increase height to make room for title
+        height = max(10, node_count * 0.6)
         
         # Use a spring layout with optimized parameters for reduced overlap
         # Higher k value means more space between nodes (stronger repulsion)
         # More iterations mean better layout convergence
-        pos = nx.spring_layout(G, k=2.6, iterations=100)
+        pos = nx.spring_layout(G, k=1.8, iterations=100, seed=42)
         
         plt.figure(figsize=(width, height))
-        
-        # Add the title with padding and position it within the figure
-        plt.suptitle(f"Course Graph for {self.name}", fontsize=16, y=0.98)
-        
-        # Add extra padding at the top of the plot to make room for the title
-        plt.subplots_adjust(top=0.9)
+        plt.title(f"Course Graph for {self.name}", fontsize=16)
         
         # Color nodes by semester for visual grouping
         node_colors = []
@@ -430,9 +427,7 @@ class CourseGraph:
         # Get unique semesters for color mapping
         all_semesters = set()
         for course in self.course_list:
-            semester = course.get_semester()
-            if semester != -1:  # Exclude unassigned semester (-1) from color mapping
-                all_semesters.add(semester)
+            all_semesters.add(course.get_semester())
             
         semester_to_color = {sem: color_map(i/max(1, len(all_semesters)-1)) 
                             for i, sem in enumerate(sorted(all_semesters))}
@@ -445,13 +440,14 @@ class CourseGraph:
             prereq_count = node_data.get('prereq_count', 0)
             
             # Set node color based on semester
-            if semester != -1 and semester in semester_to_color:
+            if semester in semester_to_color:
                 node_colors.append(semester_to_color[semester])
             else:
-                node_colors.append('white')  # Default for unassigned
+                node_colors.append('lightgrey')  # Default for unassigned
                 
             # Set node size based on how many courses depend on it 
-            node_sizes.append(1500 + (prereq_count * 750))
+            # Base size of 2000, plus 500 for each course that depends on it
+            node_sizes.append(2000 + (prereq_count * 500))
         
         # Draw the nodes with semester-based colors and size based on dependency count
         nx.draw_networkx_nodes(G, pos, 
@@ -467,10 +463,8 @@ class CourseGraph:
                               width=1.5,
                               arrows=True,
                               arrowsize=15,
-                              arrowstyle='->',
-                              edge_color='black',  # Explicitly set edge color
-                              node_size=node_sizes)  # Pass node sizes to ensure arrow placement is correct
-
+                              arrowstyle='->')
+        
         # Draw corequisite edges (dashed lines)
         coreq_edges = [(u, v) for u, v, d in G.edges(data=True) if d.get('type') == 'coreq']
         nx.draw_networkx_edges(G, pos, 
@@ -480,8 +474,7 @@ class CourseGraph:
                               arrowsize=15,
                               style='dashed',
                               arrowstyle='->',
-                              edge_color='blue',  # Blue color is already set
-                              node_size=node_sizes)  # Pass node sizes to ensure arrow placement is correct
+                              edge_color='blue')
         
         # Create labels with dependency information
         custom_labels = {}
@@ -515,7 +508,7 @@ class CourseGraph:
         
         # Add legend items for node size meaning
         legend_elements.append(plt.Line2D([0], [0], marker='o', color='w', 
-                                         markerfacecolor='white', 
+                                         markerfacecolor='lightgrey', 
                                          markersize=8))
         legend_labels.append('Node size = prerequisite importance')
         

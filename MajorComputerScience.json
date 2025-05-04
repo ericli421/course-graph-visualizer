@@ -1,4 +1,5 @@
 {
+    "program_name": "Major Computer Science",
     "COMP 202": {
         "name": "Foundations of Programming",
         "semester": -1,
@@ -295,6 +296,237 @@
         "prerequisites": [
             "COMP 251",
             "MATH 323"
+        ],
+        "corequisites": []
+    },
+    "COMP 511": {
+        "name": "Network Science",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 251",
+            "MATH 223"
+        ],
+        "corequisites": []
+    },
+    "COMP 512": {
+        "name": "Distributed Systems",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 310",
+            "COMP 251"
+        ],
+        "corequisites": []
+    },
+    "COMP 513": {
+        "name": "Advanced Computer Systems",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 310"
+        ],
+        "corequisites": []
+    },
+    "COMP 514": {
+        "name": "Applied Robotics",
+        "semester": -1,
+        "prerequisites": [
+            "MATH 223",
+            "MATH 323",
+            "COMP 206",
+            "COMP 250"
+        ],
+        "corequisites": []
+    },
+    "COMP 520": {
+        "name": "Compiler Design",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 273",
+            "COMP 302"
+        ],
+        "corequisites": []
+    },
+    "COMP 510": {
+        "name": "Modern Computer Games",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 251",
+            "MATH 223",
+            "COMP 303"
+        ],
+        "corequisites": []
+    },
+    "COMP 523": {
+        "name": "Language-based Security",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 302",
+            "COMP 330"
+        ],
+        "corequisites": []
+    },
+    "COMP 525": {
+        "name": "Formal Verification",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 251",
+            "COMP 330"
+        ],
+        "corequisites": []
+    },
+    "COMP 527": {
+        "name": "Logic and Computation",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 302"
+        ],
+        "corequisites": []
+    },
+    "COMP 532": {
+        "name": "Propositional Proof Complexity",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 330",
+            "MATH 240"
+        ],
+        "corequisites": []
+    },
+    "COMP  535": {
+        "name": "Computer Networks 1",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 310"
+        ],
+        "corequisites": []
+    },
+    "COMP 540": {
+        "name": "Matrix Computations",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 350"
+        ],
+        "corequisites": []
+    },
+    "COMP 546": {
+        "name": "Computational Perception",
+        "semester": -1,
+        "prerequisites": [],
+        "corequisites": []
+    },
+    "COMP 547": {
+        "name": "Cryptography and Data Security",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 360",
+            "MATH 323"
+        ],
+        "corequisites": []
+    },
+    "COMP 549": {
+        "name": "Brain-Inspired Artificial Intelligence",
+        "semester": -1,
+        "prerequisites": [
+            "MATH 222",
+            "MATH 223",
+            "MATH 323"
+        ],
+        "corequisites": []
+    },
+    "COMP 550": {
+        "name": "Natural Language Processing",
+        "semester": -1,
+        "prerequisites": [
+            "MATH 323",
+            "COMP 251"
+        ],
+        "corequisites": []
+    },
+    "COMP 551": {
+        "name": "Applied Machine Learning",
+        "semester": -1,
+        "prerequisites": [
+            "MATH 323",
+            "COMP 202",
+            "MATH 133",
+            "MATH 222"
+        ],
+        "corequisites": []
+    },
+    "COMP 555": {
+        "name": "Information Privacy",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 303"
+        ],
+        "corequisites": []
+    },
+    "COMP 557": {
+        "name": "Fundamentals of Computer Graphics",
+        "semester": -1,
+        "prerequisites": [
+            "MATH 222",
+            "MATH 223",
+            "COMP 250",
+            "COMP 206"
+        ],
+        "corequisites": []
+    },
+    "COMP 558": {
+        "name": "Fundamentals of Computer Vision",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 251",
+            "MATH 222",
+            "MATH 223"
+        ],
+        "corequisites": []
+    },
+    "COMP 559": {
+        "name": "Fundamentals of Computer Animation",
+        "semester": -1,
+        "prerequisites": [
+            "MATH 222",
+            "MATH 223",
+            "COMP 206",
+            "COMP 250"
+        ],
+        "corequisites": []
+    },
+    "COMP 561": {
+        "name": "Computational Biology Methods and Research",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 251",
+            "MATH 323"
+        ],
+        "corequisites": []
+    },
+    "COMP 579": {
+        "name": "Reinforcement Learning",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 451",
+            "MATH 222",
+            "MATH 223",
+            "MATH 323"
+        ],
+        "corequisites": []
+    },
+    "COMP 585": {
+        "name": "Intelligent Software Systems",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 303",
+            "COMP 424"
+        ],
+        "corequisites": []
+    },
+    "COMP 588": {
+        "name": "Probabilistic Graphical Models",
+        "semester": -1,
+        "prerequisites": [
+            "COMP 251",
+            "MATH 323",
+            "MATH 324"
         ],
         "corequisites": []
     }
