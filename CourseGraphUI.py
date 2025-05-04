@@ -145,6 +145,9 @@ class CourseGraphApp:
         )
 
         if filePath:
+            #Filler for now
+            self.current_graph = CourseGraph("New Course Graph")
+            #end of filler
             success = self.current_graph.import_from_json(filePath)
             if success:
                 self.status_var.set(f"Successfully imported from {filePath}")
@@ -213,8 +216,8 @@ class CourseGraphApp:
         semester_frame = ttk.Frame(form_frame)
         semester_frame.grid(row=2, column=1, sticky=tk.W, pady=floor(5 * ZOOM_MULTIPLIER))
         
-        season_var = tk.StringVar(value="Fall")
-        season_combo = ttk.Combobox(semester_frame, textvariable=season_var, values=["Fall", "Winter", "Summer"], width=floor(8 * ZOOM_MULTIPLIER))
+        season_var = tk.StringVar(value="")
+        season_combo = ttk.Combobox(semester_frame, textvariable=season_var, values=["","Fall", "Winter", "Summer"], width=floor(8 * ZOOM_MULTIPLIER))
         season_combo.pack(side=tk.LEFT, padx=(0, floor(5 * ZOOM_MULTIPLIER)))
         
         # Add label for year
@@ -270,7 +273,7 @@ class CourseGraphApp:
             prereq_courses = []
             if len(prereq_strings) > 1 or prereq_strings[0] != '':
                 for string in prereq_strings:
-                    string.strip()
+                    string = string.strip()
                     course = self.current_graph.get_course(string)
                     if course != None:
                         prereq_courses.append(course)
@@ -280,7 +283,7 @@ class CourseGraphApp:
             coreq_courses = []
             if len(coreq_strings) > 1 or coreq_strings[0] != '':
                 for string in coreq_strings:
-                    string.strip()
+                    string = string.strip()
                     course = self.current_graph.get_course(string)
                     if course != None:
                         coreq_courses.append(course)
@@ -363,7 +366,13 @@ class CourseGraphApp:
 
         #Semester Values
         selected_semester_text = self.courses_tree.item(selection)['values'][1]
-        course_season, course_year = selected_semester_text.split()
+
+        if selected_semester_text == 'Unassigned':
+            course_season = ""
+            course_year = ""
+        else:
+            course_season, course_year = selected_semester_text.split()
+
         season_var = tk.StringVar(value=course_season)
         year_var = tk.StringVar(value=course_year)
 

@@ -353,59 +353,178 @@ class CourseGraph:
     
     def visualize(self):
         '''
-        Visualizes the course graph
+        Visualizes the course graph using a spring layout
+        
         Arguments:
             None
         Returns:
             None
-        >>> comp_sci = CourseGraph('Computer Science')
-        >>> comp202 = CourseNode('COMP 202', 'Foundations of Programming', [], [], 74)
-        >>> comp250 = CourseNode('COMP 250', 'Introduction to Computer Science', [comp202], [], 75)
-        >>> comp_sci.add_course(comp202)
-        >>> comp_sci.add_course(comp250)
-        >>> comp_sci.visualize()
         '''
-        
+        import matplotlib.pyplot as plt
         
         # Create a directed graph
         G = nx.DiGraph()
         
+        # Calculate how many courses have each course as a prerequisite or corequisite
+        prereq_count = {}
+        coreq_count = {}
+        
+        for course in self.course_list:
+            course_code = course.get_course_code()
+            if course_code not in prereq_count:
+                prereq_count[course_code] = 0
+            if course_code not in coreq_count:
+                coreq_count[course_code] = 0
+                
+            # Count how many courses have this course as a prerequisite or corequisite
+            for other_course in self.course_list:
+                if course in other_course.get_prerequisites():
+                    prereq_count[course_code] += 1
+                if course in other_course.get_corequisites():
+                    coreq_count[course_code] += 1
+        
         # Add nodes and edges
         for course in self.course_list:
-            G.add_node(course.get_course_code())
+            course_code = course.get_course_code()
+            semester = course.get_semester()
+            
+            # Add node with semester and dependency counts
+            G.add_node(course_code, 
+                      semester=semester,
+                      prereq_count=prereq_count.get(course_code, 0),
+                      coreq_count=coreq_count.get(course_code, 0))
+            
+            # Add edges for prerequisites and corequisites
             for prereq in course.get_prerequisites():
-                G.add_edge(prereq.get_course_code(), course.get_course_code())
-            # Fix: This was using prerequisites instead of corequisites
+                G.add_edge(prereq.get_course_code(), course_code, type='prereq')
+            
             for coreq in course.get_corequisites():
-                G.add_edge(coreq.get_course_code(), course.get_course_code(), style='dashed')
+                G.add_edge(coreq.get_course_code(), course_code, type='coreq')
         
-        # Create the layout for the graph
-        pos = nx.spring_layout(G)
+        # Calculate the total number of nodes to set appropriate figure size
+        node_count = len(G.nodes())
+        width = max(14, node_count * 0.8)
+        height = max(10, node_count * 0.6)
         
-        plt.figure(figsize=(12, 8))
+        # Use a spring layout with optimized parameters for reduced overlap
+        # Higher k value means more space between nodes (stronger repulsion)
+        # More iterations mean better layout convergence
+        pos = nx.spring_layout(G, k=1.8, iterations=100, seed=42)
+        
+        plt.figure(figsize=(width, height))
         plt.title(f"Course Graph for {self.name}", fontsize=16)
         
-        # Draw the graph
-        nx.draw(G, pos, 
-                with_labels=True, 
-                node_size=2000, 
-                node_color='lightblue', 
-                font_size=10, 
-                font_weight='bold',
-                arrows=True)
-                
-        # Add edge labels
-        edge_labels = {}
-        for u, v, data in G.edges(data=True):
-            if 'style' in data and data['style'] == 'dashed':
-                edge_labels[(u, v)] = 'coreq'
-            else:
-                edge_labels[(u, v)] = 'prereq'
-                
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+        # Color nodes by semester for visual grouping
+        node_colors = []
+        node_sizes = []
+        color_map = plt.cm.get_cmap('viridis', 30)  # Color map with enough colors
         
-        # Display the graph
+        # Get unique semesters for color mapping
+        all_semesters = set()
+        for course in self.course_list:
+            all_semesters.add(course.get_semester())
+            
+        semester_to_color = {sem: color_map(i/max(1, len(all_semesters)-1)) 
+                            for i, sem in enumerate(sorted(all_semesters))}
+        
+        # Prepare node colors and sizes based on attributes
+        for node in G.nodes():
+            # Get node attributes
+            node_data = G.nodes[node]
+            semester = node_data.get('semester')
+            prereq_count = node_data.get('prereq_count', 0)
+            
+            # Set node color based on semester
+            if semester in semester_to_color:
+                node_colors.append(semester_to_color[semester])
+            else:
+                node_colors.append('lightgrey')  # Default for unassigned
+                
+            # Set node size based on how many courses depend on it 
+            # Base size of 2000, plus 500 for each course that depends on it
+            node_sizes.append(2000 + (prereq_count * 500))
+        
+        # Draw the nodes with semester-based colors and size based on dependency count
+        nx.draw_networkx_nodes(G, pos, 
+                              node_size=node_sizes, 
+                              node_color=node_colors,
+                              edgecolors='black',
+                              linewidths=1.0)
+        
+        # Draw prerequisite edges (solid lines)
+        prereq_edges = [(u, v) for u, v, d in G.edges(data=True) if d.get('type') == 'prereq']
+        nx.draw_networkx_edges(G, pos, 
+                              edgelist=prereq_edges,
+                              width=1.5,
+                              arrows=True,
+                              arrowsize=15,
+                              arrowstyle='->')
+        
+        # Draw corequisite edges (dashed lines)
+        coreq_edges = [(u, v) for u, v, d in G.edges(data=True) if d.get('type') == 'coreq']
+        nx.draw_networkx_edges(G, pos, 
+                              edgelist=coreq_edges,
+                              width=1.5,
+                              arrows=True,
+                              arrowsize=15,
+                              style='dashed',
+                              arrowstyle='->',
+                              edge_color='blue')
+        
+        # Create labels with dependency information
+        custom_labels = {}
+        for node in G.nodes():
+            prereq_count = G.nodes[node].get('prereq_count', 0)
+            coreq_count = G.nodes[node].get('coreq_count', 0)
+            
+            if prereq_count > 0 or coreq_count > 0:
+                label = f"{node}\n(P:{prereq_count}, C:{coreq_count})"
+            else:
+                label = f"{node}"
+            
+            custom_labels[node] = label
+            
+        # Draw labels with dependency count information
+        nx.draw_networkx_labels(G, pos, labels=custom_labels, font_size=9, font_weight='bold')
+        
+        # Add a legend for semesters
+        legend_elements = []
+        legend_labels = []
+        
+        for sem in sorted(all_semesters):
+            if sem != -1:  # Skip unassigned semester
+                season = ["Winter", "Summer", "Fall"][sem % 3]
+                year = (sem // 3) + 2000
+                semester_text = f"{season} {year}"
+                legend_elements.append(plt.Line2D([0], [0], marker='o', color='w', 
+                                                 markerfacecolor=semester_to_color[sem], 
+                                                 markersize=10))
+                legend_labels.append(semester_text)
+        
+        # Add legend items for node size meaning
+        legend_elements.append(plt.Line2D([0], [0], marker='o', color='w', 
+                                         markerfacecolor='lightgrey', 
+                                         markersize=8))
+        legend_labels.append('Node size = prerequisite importance')
+        
+        # Add legend items for prereq and coreq edges
+        legend_elements.append(plt.Line2D([0], [0], color='black', lw=2))
+        legend_labels.append('Prerequisite')
+        
+        legend_elements.append(plt.Line2D([0], [0], color='blue', lw=2, linestyle='--'))
+        legend_labels.append('Corequisite')
+        
+        # Add legend explanation for labels
+        legend_elements.append(plt.Line2D([0], [0], marker='', color='w'))
+        legend_labels.append('P:X = X courses have this as prerequisite')
+        
+        legend_elements.append(plt.Line2D([0], [0], marker='', color='w'))
+        legend_labels.append('C:Y = Y courses have this as corequisite')
+        
+        plt.legend(legend_elements, legend_labels, loc='upper right')
+        
         plt.tight_layout()
+        plt.axis('off')  # Hide axes
         plt.show()
         
 
