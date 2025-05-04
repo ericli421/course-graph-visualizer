@@ -115,6 +115,23 @@ class CourseGraph:
         """
         return list(self.courses.values())
     
+    def get_course(self,code):
+        '''
+        Returns course node that matches course
+
+        Arguments:
+            code (string): Course code
+        Returns:
+            course (CourseNode): course
+        '''
+        if (len(self.course_list) <= 0):
+            return None
+        else:
+            for course in self.course_list:
+                if course.course_code == code:
+                    return course
+            return None
+    
     def get_courses_by_semester(self, semester):
         """
         Get all courses in a specific semester.
@@ -211,11 +228,12 @@ class CourseGraph:
         
         # Convert the graph to a serializable format
         data = {}
-        for course_code, course in self.courses.items():
-            data[course_code] = {
-                'name': course.course_name,
-                'semester': course.semester,
-                'prerequisites': [prereq.course_code for prereq in course.prerequisites]
+        for item in self.course_list:
+            
+            data[item.course_code] = {
+                'name': item.course_name,
+                'semester': item.semester,
+                'prerequisites': [prereq.course_code for prereq in item.prerequisites]
             }
         
         # Write to file
@@ -401,17 +419,17 @@ class CourseGraph:
             line1 = self.course_name + " (" + self.course_code + "):\n" 
 
             if len(self.prerequisites) == 0:
-                line2 = "   Prerequisites: None"
+                line2 = "   Prerequisites: None\n"
             else:
-                line2= "    Prerequisites: "
+                line2 = "   Prerequisites: "
                 for node in self.prerequisites:
                     line2 = line2 + node.course_code + " "
                 line2 = line2 + '\n'
 
-            if len(self.corequisites == 0):
-                line3 = "Corequisites: None"
+            if len(self.corequisites ) == 0:
+                line3 = "   Corequisites: None\n"
             else:
-                line3 = "Corequisites: "
+                line3 = "   Corequisites: "
                 for node in self.corequisites:
                     line3 = line3 + node.course_code + " "
                 line3 = line3 + '\n'
@@ -427,7 +445,7 @@ class CourseGraph:
                 else:
                     line4 = line4 + "Fall "
                 
-                year = (self.semester) // 3 + 2024 
+                year = (self.semester) // 3 + 2000 
                 line4 = line4 + str(year)
             
             return line1 + line2 + line3 + line4
@@ -536,3 +554,17 @@ class CourseGraph:
                 None
             '''
             self.course_name = new_name
+
+
+if __name__ == '__main__':
+    graph = CourseGraph("test")
+    c202 = CourseGraph.CourseNode('COMP 202', 'Foundations of Programming', [], [], 74)
+    graph.add_course(c202)
+    c250 = CourseGraph.CourseNode('COMP 250', 'Introduction to Computer Science', [c202], [], 75)
+    graph.add_course(c250)
+    print(c202)
+    print(c250)
+    graph.export_to_json('test.json')
+    graph2 = CourseGraph("test32")
+    graph2.import_from_json('test.json')
+    print(graph2)
