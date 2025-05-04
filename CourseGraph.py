@@ -412,7 +412,7 @@ class CourseGraph:
         # Use a spring layout with optimized parameters for reduced overlap
         # Higher k value means more space between nodes (stronger repulsion)
         # More iterations mean better layout convergence
-        pos = nx.spring_layout(G, k=2.6, iterations=100)
+        pos = nx.spring_layout(G, k=3.0, iterations=100)
         
         plt.figure(figsize=(width, height))
         
