@@ -66,8 +66,11 @@ class CourseGraphApp:
         remove_btn = ttk.Button(buttons_frame, text="Remove Course", width = btn_width, command = self.remove_course)
         remove_btn.grid(row = 2, column = 1, padx = floor(10 * ZOOM_MULTIPLIER), pady = floor(5 * ZOOM_MULTIPLIER))
 
-        visualize_btn = ttk.Button(buttons_frame, text="Generate Graph", width = btn_width * 2 + floor(5 * ZOOM_MULTIPLIER), command = self.visualize_graph)
-        visualize_btn.grid(row = 3, column = 0, columnspan=2, padx = floor(10 * ZOOM_MULTIPLIER), pady = floor(5 * ZOOM_MULTIPLIER))
+        visualize_btn = ttk.Button(buttons_frame, text="Generate Graph", width = btn_width, command = self.visualize_graph)
+        visualize_btn.grid(row = 3, column = 0, padx = floor(10 * ZOOM_MULTIPLIER), pady = floor(5 * ZOOM_MULTIPLIER))
+
+        reset_btn = visualize_btn = ttk.Button(buttons_frame, text="Clear Data", width = btn_width, command = self.reset_graph)
+        reset_btn.grid(row = 3, column = 1, padx = floor(10 * ZOOM_MULTIPLIER), pady = floor(5 * ZOOM_MULTIPLIER))
 
         #Course display area
         courses_frame = ttk.LabelFrame(self.main_frame, text="Courses", padding=str(floor(10 * ZOOM_MULTIPLIER)))
@@ -565,6 +568,15 @@ class CourseGraphApp:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to visualize graph: {str(e)}")
             self.status_var.set("Graph visualization failed")
+
+    def reset_graph(self):
+        confirm = messagebox.askyesno("Confirm Clear", "Are you sure you want to clear your current data?")
+
+        if confirm:
+            self.current_graph = CourseGraph('New Course Graph')
+            self.update_course_display()
+            file = open('savedata','w')
+            file.close()
 
 
 def main():
